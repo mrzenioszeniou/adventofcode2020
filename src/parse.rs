@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -25,6 +26,18 @@ pub fn read_int_list(filepath: &str) -> Vec<u32> {
 
   ret
 }
+
+pub fn read_lines(filepath: &str) -> Vec<String> {
+  let path = PathBuf::from_str(filepath).unwrap();
+  let mut raw_data = String::new();
+  let _ = File::open(path)
+    .unwrap()
+    .read_to_string(&mut raw_data)
+    .unwrap();
+
+  raw_data.split("\n").map(String::from).collect()
+}
+
 pub fn parse_day2(filepath: &str) -> Vec<((char, usize, usize), String)> {
   let path = PathBuf::from_str(filepath).unwrap();
   let mut raw_data = String::new();
@@ -91,6 +104,41 @@ pub fn parse_day3(filepath: &str) -> Vec<Vec<bool>> {
       }
     }
     ret.push(line_vec);
+  }
+
+  ret
+}
+
+pub fn parse_day4(filepath: &str) -> Vec<HashMap<String, String>> {
+  let path = PathBuf::from_str(filepath).unwrap();
+  let mut raw_data = String::new();
+  let _ = File::open(path)
+    .unwrap()
+    .read_to_string(&mut raw_data)
+    .unwrap();
+
+  let mut ret = vec![];
+  let mut curr = HashMap::new();
+  for line in raw_data.split("\n") {
+    let line = String::from(String::from(line).trim());
+
+    if line.is_empty() {
+      if !curr.is_empty() {
+        ret.push(curr);
+      }
+      curr = HashMap::new();
+    } else {
+      for field in line.split_whitespace() {
+        let name = field.split(":").next().unwrap();
+        let value = field.split(":").skip(1).next().unwrap();
+
+        curr.insert(String::from(name), String::from(value));
+      }
+    }
+  }
+
+  if !curr.is_empty() {
+    ret.push(curr);
   }
 
   ret
