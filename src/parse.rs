@@ -35,7 +35,10 @@ pub fn read_lines(filepath: &str) -> Vec<String> {
     .read_to_string(&mut raw_data)
     .unwrap();
 
-  raw_data.split("\n").map(String::from).collect()
+  raw_data
+    .split("\n")
+    .map(|s| String::from(s.trim()))
+    .collect()
 }
 
 pub fn parse_day2(filepath: &str) -> Vec<((char, usize, usize), String)> {
