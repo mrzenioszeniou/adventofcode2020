@@ -2,7 +2,7 @@
 
 Solutions for [advent of code 2020](https://adventofcode.com/2020).
 
-To calculate solution for a certain day (day No.4 in this case) simply run:
+To calculate the solution for a certain day (day 4 in the example) simply run:
 ```
 cargo run -- 4
 ```
