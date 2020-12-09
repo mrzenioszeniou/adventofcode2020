@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use regex::Regex;
 
-pub fn read_int_list(filepath: &str) -> Vec<u32> {
+pub fn read_int_list(filepath: &str) -> Vec<u64> {
   let path = PathBuf::from_str(filepath).unwrap();
   let mut raw_data = String::new();
   let _ = File::open(path)
@@ -19,7 +19,7 @@ pub fn read_int_list(filepath: &str) -> Vec<u32> {
   for line in raw_data.split_whitespace() {
     ret.push(
       line
-        .parse::<u32>()
+        .parse::<u64>()
         .expect(&format!("Couldn't parse {} as an integer", line)),
     );
   }
