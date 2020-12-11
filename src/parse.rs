@@ -41,6 +41,20 @@ pub fn read_lines(filepath: &str) -> Vec<String> {
     .collect()
 }
 
+pub fn read_char_matrix(filepath: &str) -> Vec<Vec<char>> {
+  let path = PathBuf::from_str(filepath).unwrap();
+  let mut raw_data = String::new();
+  let _ = File::open(path)
+    .unwrap()
+    .read_to_string(&mut raw_data)
+    .unwrap();
+
+  raw_data
+    .split("\n")
+    .map(|s| s.trim().chars().collect())
+    .collect()
+}
+
 pub fn parse_day2(filepath: &str) -> Vec<((char, usize, usize), String)> {
   let path = PathBuf::from_str(filepath).unwrap();
   let mut raw_data = String::new();
