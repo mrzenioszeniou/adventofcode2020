@@ -30,22 +30,22 @@ fn part1(instructions: &Vec<(char, isize)>) {
 }
 
 fn part2(instructions: &Vec<(char, isize)>) {
-  let mut x: f64 = 0_f64;
-  let mut y: f64 = 0_f64;
-  let mut wx: f64 = 10_f64;
-  let mut wy: f64 = 1_f64;
+  let mut x = 0_isize;
+  let mut y = 0_isize;
+  let mut wx = 10_isize;
+  let mut wy = 1_isize;
 
   for instruction in instructions.iter() {
     match instruction {
-      ('N', n) => wy += *n as f64,
-      ('S', n) => wy -= *n as f64,
-      ('E', n) => wx += *n as f64,
-      ('W', n) => wx -= *n as f64,
+      ('N', n) => wy += *n,
+      ('S', n) => wy -= *n,
+      ('E', n) => wx += *n,
+      ('W', n) => wx -= *n,
       ('L', n) => rotate_left(&mut wx, &mut wy, *n),
       ('R', n) => rotate_right(&mut wx, &mut wy, *n),
       ('F', n) => {
-        x += wx * *n as f64;
-        y += wy * *n as f64;
+        x += wx * *n;
+        y += wy * *n;
       }
       (action, _) => panic!("Invalid action {}", action),
     }
@@ -54,7 +54,7 @@ fn part2(instructions: &Vec<(char, isize)>) {
   println!("Part 2: {}", x.abs() + y.abs());
 }
 
-fn rotate_left(x: &mut f64, y: &mut f64, n: isize) {
+fn rotate_left(x: &mut isize, y: &mut isize, n: isize) {
   for _ in 0..n / 90 {
     let tmp = *x;
     *x = -*y;
@@ -62,7 +62,7 @@ fn rotate_left(x: &mut f64, y: &mut f64, n: isize) {
   }
 }
 
-fn rotate_right(x: &mut f64, y: &mut f64, n: isize) {
+fn rotate_right(x: &mut isize, y: &mut isize, n: isize) {
   for _ in 0..n / 90 {
     let tmp = -*x;
     *x = *y;
