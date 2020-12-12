@@ -160,3 +160,26 @@ pub fn parse_day4(filepath: &str) -> Vec<HashMap<String, String>> {
 
   ret
 }
+
+pub fn parse_day12(filepath: &str) -> Vec<(char, isize)> {
+  let path = PathBuf::from_str(filepath).unwrap();
+  let mut raw_data = String::new();
+  let _ = File::open(path)
+    .unwrap()
+    .read_to_string(&mut raw_data)
+    .unwrap();
+
+  let re = Regex::from_str("([NSEWLRF])([0-9]+)").expect("Couldn't parse regex");
+
+  let mut ret = vec![];
+  for line in raw_data.split("\n") {
+    let captures = re
+      .captures(&line)
+      .expect(&format!("Couldn't capture regex in {}", line));
+    let action = captures.get(1).unwrap().as_str().chars().next().unwrap();
+    let number = captures.get(2).unwrap().as_str().parse::<isize>().unwrap();
+    ret.push((action, number));
+  }
+
+  ret
+}
