@@ -1,9 +1,11 @@
+extern crate indicatif;
 extern crate regex;
 
 mod day1;
 mod day10;
 mod day11;
 mod day12;
+mod day13;
 mod day2;
 mod day3;
 mod day4;
@@ -55,6 +57,7 @@ fn main() {
     10 => day10::solve(),
     11 => day11::solve(),
     12 => day12::solve(),
+    13 => day13::solve(),
     _ => println!("No solution for day {}", day),
   }
 }

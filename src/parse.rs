@@ -183,3 +183,16 @@ pub fn parse_day12(filepath: &str) -> Vec<(char, isize)> {
 
   ret
 }
+
+pub fn parse_day13_part1(filepath: &str) -> (usize, Vec<usize>) {
+  let raw_data = read_lines(filepath);
+
+  let start: usize = raw_data[0].parse().expect("Couldn't parse start time");
+  let buses: Vec<usize> = raw_data[1]
+    .split(",")
+    .filter(|s| *s != "x")
+    .map(|s| s.parse().expect("Couldn't parse bus"))
+    .collect();
+
+  (start, buses)
+}
