@@ -9,8 +9,7 @@ pub fn solve() {
   );
 }
 
-fn get_step(numbers: Vec<usize>, turn: usize) -> usize {
-  let mut history: Vec<usize> = numbers.clone();
+fn get_step(mut history: Vec<usize>, turn: usize) -> usize {
   let mut ledger: HashMap<usize, Vec<usize>> = HashMap::new();
 
   for (turn, number) in history.iter().enumerate() {
@@ -21,7 +20,6 @@ fn get_step(numbers: Vec<usize>, turn: usize) -> usize {
     let last = history.last().unwrap();
     let next = ledger
       .get(last)
-      .filter(|turns| turns.len() > 1)
       .map(|turns| turns.iter().rev().skip(1).next().map(|n| history.len() - n))
       .flatten()
       .unwrap_or(0);
