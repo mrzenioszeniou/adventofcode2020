@@ -246,3 +246,38 @@ pub fn parse_day16(
 
   (my_ticket, nearby_tickets, fields)
 }
+
+pub fn parse_day17(filepath: &str) -> Vec<Vec<Vec<usize>>> {
+  let ext = 15;
+
+  let mut init = vec![];
+
+  for line in read_char_matrix(filepath).into_iter() {
+    let mut init_line = vec![0; ext];
+    for character in line.into_iter() {
+      init_line.push(match character {
+        '.' => 0,
+        '#' => 1,
+        c => panic!("Unexpected character {}", c),
+      });
+    }
+    init_line.append(&mut vec![0; ext]);
+    init.push(init_line);
+  }
+
+  let n = init[0].len();
+
+  for _ in 0..ext {
+    init.insert(0, vec![0; n]);
+    init.push(vec![0; n]);
+  }
+
+  let mut ret = vec![init];
+
+  for _ in 0..ext {
+    ret.insert(0, vec![vec![0; n]; n]);
+    ret.push(vec![vec![0; n]; n]);
+  }
+
+  ret
+}
