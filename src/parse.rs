@@ -196,3 +196,53 @@ pub fn parse_day13_part1(filepath: &str) -> (usize, Vec<usize>) {
 
   (start, buses)
 }
+
+pub fn parse_day16(
+  filepath: &str,
+) -> (
+  Vec<usize>,
+  Vec<Vec<usize>>,
+  HashMap<String, (usize, usize, usize, usize)>,
+) {
+  let field_re = Regex::from_str("(.+): ([0-9]+)-([0-9]+) or ([0-9]+)-([0-9]+)")
+    .expect("Couldn't parse field regex");
+
+  let mut my_ticket = vec![];
+  let mut nearby_tickets = vec![];
+  let mut fields = HashMap::new();
+  let mut mine = false;
+
+  for line in read_lines(filepath).iter() {
+    if line.trim().is_empty() {
+      continue;
+    } else if line.trim() == "your ticket:" {
+      mine = true;
+    } else if line.trim() == "nearby tickets:" {
+      mine = false;
+    } else if let Some(captures) = field_re.captures(line) {
+      let field = String::from(captures.get(1).unwrap().as_str());
+      let min_0 = captures.get(2).unwrap().as_str().parse().unwrap();
+      let max_0 = captures.get(3).unwrap().as_str().parse().unwrap();
+      let min_1 = captures.get(4).unwrap().as_str().parse().unwrap();
+      let max_1 = captures.get(5).unwrap().as_str().parse().unwrap();
+      fields.insert(field, (min_0, max_0, min_1, max_1));
+    } else {
+      let mut ticket = vec![];
+      for val_str in line.split(",") {
+        ticket.push(
+          val_str
+            .parse()
+            .expect(&format!("Couldn't parse {} as a usize", val_str)),
+        );
+      }
+
+      if mine {
+        my_ticket = ticket;
+      } else {
+        nearby_tickets.push(ticket);
+      }
+    }
+  }
+
+  (my_ticket, nearby_tickets, fields)
+}
