@@ -1,6 +1,5 @@
 use crate::parse;
-use std::collections::{HashMap, HashSet};
-use std::iter::FromIterator;
+use std::collections::HashMap;
 
 pub fn solve() {
   let (my_ticket, nearby_tickets, fields) = parse::parse_day16("input/16.txt");
@@ -53,79 +52,52 @@ fn part2(
         continue 'ticket;
       }
     }
-    clean_tickets.push(ticket);
+    clean_tickets.push(ticket.clone());
   }
 
-  let mut valid_permutations: HashSet<Vec<String>> =
-    get_valid_permutations(my_ticket.clone(), fields.clone());
+  let mut my_ticket = my_ticket.clone();
+  let mut fields = fields.clone();
+  let mut ret = 1;
 
-  for (i, ticket) in nearby_tickets.iter().enumerate() {
-    let valid_subset = get_valid_permutations(ticket.clone(), fields.clone());
-    valid_permutations.retain(|permutation| valid_subset.contains(permutation));
-    // println!("{}", i);
-  }
+  while !fields.is_empty() {
+    // Find a column that matches only one field
+    let mut valid_field = None;
+    for i in 0..clean_tickets[0].len() {
+      let mut valid_fields = fields
+        .iter()
+        .filter(|(_, (min_0, max_0, min_1, max_1))| {
+          clean_tickets
+            .iter()
+            .map(|ticket| ticket[i])
+            .chain(my_ticket[i]..=my_ticket[i])
+            .all(|val| val >= *min_0 && val <= *max_0 || val >= *min_1 && val <= *max_1)
+        })
+        .map(|field| field.0)
+        .collect::<Vec<_>>();
 
-  println!("{:?}", valid_permutations);
+      if valid_fields.len() == 1 {
+        valid_field = Some((i, valid_fields.pop().unwrap().clone()));
+        break;
+      }
+    }
 
-  0
-}
+    // Remove that field and column
+    match valid_field {
+      Some(valid_field) => {
+        if valid_field.1.starts_with("departure") {
+          ret *= my_ticket[valid_field.0];
+        }
 
-fn get_valid_permutations(
-  mut ticket: Vec<usize>,
-  fields: HashMap<String, (usize, usize, usize, usize)>,
-) -> HashSet<Vec<String>> {
-  let mut valid_permutations = HashSet::new();
+        my_ticket.remove(valid_field.0);
+        fields.remove(&valid_field.1);
 
-  // println!("{:?} {:?}", ticket, fields);
-
-  if ticket.is_empty() {
-    valid_permutations.insert(vec![]);
-    // println!("Returning {:?}", valid_permutations);
-    return valid_permutations;
-  }
-
-  let value = ticket.pop().unwrap();
-
-  for (field, _) in fields.iter().filter(|(_, (min_0, max_0, min_1, max_1))| {
-    (value >= *min_0 && value <= *max_0) || (value >= *min_1 && value <= *max_1)
-  }) {
-    let mut remaining_fields = fields.clone();
-    remaining_fields.retain(|f, _| f != field);
-
-    let valid_sub_permutations = get_valid_permutations(ticket.clone(), remaining_fields);
-
-    if valid_permutations.is_empty() {}
-
-    for mut sub_permutation in valid_sub_permutations.into_iter() {
-      sub_permutation.push(String::from(field));
-      valid_permutations.insert(sub_permutation);
+        for ticket in clean_tickets.iter_mut() {
+          (*ticket).remove(valid_field.0);
+        }
+      }
+      None => panic!("No field matching the same column of values could be found"),
     }
   }
 
-  valid_permutations
-}
-
-#[test]
-fn test_get_valid_permutations() {
-  let mut ticket = vec![11];
-  let mut fields = HashMap::new();
-  fields.insert(String::from("class"), (0, 1, 4, 19));
-  assert_eq!(
-    get_valid_permutations(ticket.clone(), fields.clone()).len(),
-    1
-  );
-
-  ticket.push(12);
-  fields.insert(String::from("row"), (0, 5, 8, 19));
-  assert_eq!(
-    get_valid_permutations(ticket.clone(), fields.clone()).len(),
-    2
-  );
-
-  ticket.push(13);
-  fields.insert(String::from("seat"), (0, 13, 16, 19));
-  assert_eq!(
-    get_valid_permutations(ticket.clone(), fields.clone()).len(),
-    6
-  );
+  ret
 }
