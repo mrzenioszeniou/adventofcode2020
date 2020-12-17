@@ -247,10 +247,10 @@ pub fn parse_day16(
   (my_ticket, nearby_tickets, fields)
 }
 
-pub fn parse_day17(filepath: &str) -> Vec<Vec<Vec<usize>>> {
+pub fn parse_day17(filepath: &str) -> Vec<Vec<Vec<Vec<usize>>>> {
   let ext = 15;
 
-  let mut init = vec![];
+  let mut init_matrix = vec![];
 
   for line in read_char_matrix(filepath).into_iter() {
     let mut init_line = vec![0; ext];
@@ -262,21 +262,28 @@ pub fn parse_day17(filepath: &str) -> Vec<Vec<Vec<usize>>> {
       });
     }
     init_line.append(&mut vec![0; ext]);
-    init.push(init_line);
+    init_matrix.push(init_line);
   }
 
-  let n = init[0].len();
+  let n = init_matrix[0].len();
 
   for _ in 0..ext {
-    init.insert(0, vec![0; n]);
-    init.push(vec![0; n]);
+    init_matrix.insert(0, vec![0; n]);
+    init_matrix.push(vec![0; n]);
   }
 
-  let mut ret = vec![init];
+  let mut init_cube = vec![init_matrix];
 
   for _ in 0..ext {
-    ret.insert(0, vec![vec![0; n]; n]);
-    ret.push(vec![vec![0; n]; n]);
+    init_cube.insert(0, vec![vec![0; n]; n]);
+    init_cube.push(vec![vec![0; n]; n]);
+  }
+
+  let mut ret = vec![init_cube];
+
+  for _ in 0..ext {
+    ret.insert(0, vec![vec![vec![0; n]; n]; n]);
+    ret.push(vec![vec![vec![0; n]; n]; n]);
   }
 
   ret
