@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -284,6 +284,102 @@ pub fn parse_day17(filepath: &str) -> Vec<Vec<Vec<Vec<usize>>>> {
   for _ in 0..ext {
     ret.insert(0, vec![vec![vec![0; n]; n]; n]);
     ret.push(vec![vec![vec![0; n]; n]; n]);
+  }
+
+  ret
+}
+
+pub fn parse_day19_rules(filepath: &str) -> HashMap<usize, HashSet<String>> {
+  let term_re = Regex::from_str("^([0-9]+): \"([a-z]+)\"$").expect("Couldn't parse regex");
+  let rule_re =
+    Regex::from_str("([0-9]+):\\s*([0-9]+)\\s*([0-9]+)?\\s*\\|?\\s*([0-9]+)?\\s*([0-9]+)?")
+      .expect("Could parse regex");
+  let mut ret: HashMap<usize, HashSet<String>> = HashMap::new();
+  let mut lines = read_lines(filepath);
+
+  'outer: while !lines.is_empty() {
+    // if lines.len() == 1 {
+    //   println!("Only '{}' left", lines[0]);
+    // } else {
+    //   println!("{} lines left", lines.len());
+    // }
+
+    for line_idx in 0..lines.len() {
+      // Check for terminal definition
+      if let Some(captures) = term_re.captures(&lines[line_idx]) {
+        let rule: usize = captures.get(1).unwrap().as_str().parse().unwrap();
+        let val = String::from(captures.get(2).unwrap().as_str());
+
+        match ret.get_mut(&rule) {
+          Some(vals) => {
+            vals.insert(val);
+          }
+          None => {
+            let mut vals = HashSet::new();
+            vals.insert(val);
+            ret.insert(rule, vals);
+          }
+        }
+
+        lines.remove(line_idx);
+        continue 'outer;
+      }
+      // Check for rules definition
+      else if let Some(captures) = rule_re.captures(&lines[line_idx]) {
+        let rule: Vec<Option<usize>> = captures
+          .iter()
+          .skip(1)
+          .map(|c| c.map(|r| r.as_str().parse().unwrap()))
+          .collect();
+
+        if rule
+          .iter()
+          .skip(1)
+          .all(|r| r.map(|r| ret.contains_key(&r)).unwrap_or(true))
+        {
+          let mut definition: HashSet<String> = HashSet::new();
+
+          let rule_id: usize = rule[0].unwrap();
+
+          let subrule_0: HashSet<String> = ret.get(&rule[1].unwrap()).unwrap().clone();
+
+          if let Some(subrule_1) = rule[2] {
+            let subrule_1 = ret.get(&subrule_1).unwrap().clone();
+            for subrules_0 in subrule_0.iter() {
+              for subrules_1 in subrule_1.iter() {
+                definition.insert(format!("{}{}", subrules_0, subrules_1));
+              }
+            }
+          } else {
+            definition.extend(subrule_0);
+          }
+
+          if let Some(subrule_2) = rule[3] {
+            let subrule_2 = ret.get(&subrule_2).unwrap().clone();
+
+            if let Some(subrule_3) = rule[4] {
+              let subrule_3 = ret.get(&subrule_3).unwrap().clone();
+
+              for subrules_2 in subrule_2.iter() {
+                for subrules_3 in subrule_3.iter() {
+                  definition.insert(format!("{}{}", subrules_2, subrules_3));
+                }
+              }
+            } else {
+              definition.extend(subrule_2);
+            }
+          }
+
+          ret.insert(rule_id, definition);
+
+          lines.remove(line_idx);
+          continue 'outer;
+        }
+      } else {
+        panic!("Can't match line {}", line_idx);
+      }
+    }
+    panic!("This shouldn't have happened");
   }
 
   ret
