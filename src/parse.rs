@@ -384,3 +384,38 @@ pub fn parse_day19_rules(filepath: &str) -> HashMap<usize, HashSet<String>> {
 
   ret
 }
+
+pub fn parse_day20(filepath: &str) -> HashMap<usize, Vec<Vec<u8>>> {
+  let tile_re = Regex::from_str("Tile ([0-9]+):").expect("Couldn't parse tile regex");
+
+  let mut ret = HashMap::new();
+
+  let mut tile_id = 0;
+  let mut tile = vec![];
+
+  for line in read_lines(filepath).into_iter() {
+    if line.is_empty() {
+      ret.insert(tile_id, tile);
+      tile = vec![];
+    } else if let Some(captures) = tile_re.captures(&line) {
+      tile_id = captures.get(1).unwrap().as_str().parse().unwrap();
+    } else {
+      tile.push(
+        line
+          .chars()
+          .map(|c| match c {
+            '.' => 0,
+            '#' => 1,
+            _ => panic!("Dafuq is this: {}", c),
+          })
+          .collect(),
+      );
+    }
+  }
+
+  if !tile.is_empty() {
+    ret.insert(tile_id, tile);
+  }
+
+  ret
+}
