@@ -19,54 +19,35 @@ enum Side {
 pub fn solve() {
   let parsed_tiles = parse::parse_day20("input/20.txt");
 
-  println!("PART 1: {}", part1(parsed_tiles));
-  println!("PART 2: Bar");
-}
+  let tile_ids: HashSet<usize> = parsed_tiles.keys().cloned().collect();
 
-///
-/// Actual solution
-///
-/// 2221 2687 2657 3163 2843 3203 1097 3541 3617 3433 3881 1723
-/// 2243 3169 3793 3469 2381 1579 1933 3217 2879 2591 1453 1697
-/// 1223 3989 1459 1489 1973 2713 2003 3361 3467 1669 2273 1721
-/// 1777 2549 2857 3643 1657 3253 1153 3343 2531 1759 3041 2459
-/// 1297 3517 3917 1543 2897 3851 3823 3533 3391 2683 2029 3923
-/// 1063 3331 2927 3221 3209 2207 3191 1229 1861 2357 3803 2039
-/// 1249 1483 3769 2063 1279 3797 3779 1663 2749 2137 3089 2539
-/// 1549 1259 2767 3929 2081 3119 1867 2711 1117 3889 2633 1187
-/// 1811 1621 3413 3373 3463 1801 1583 2237 2203 1033 1171 1787
-/// 3527 1301 2969 3329 3623 1123 2671 1741 2143 2729 1181 1747
-/// 1907 1627 1319 3697 3323 3919 1951 1429 1523 2293 1013 2087
-/// 1511 3581 2999 3943 3511 3271 2659 3299 1487 2833 2129 2287
-///
-/// -> 13224049461431
-///
-fn part1(tiles: Tiles) -> usize {
-  let remaining_tiles: HashSet<usize> = tiles.keys().cloned().collect();
-  let ledger = build_ledger(tiles);
+  let ledger = build_ledger(parsed_tiles);
 
-  // for ((side, side_vals), tiles) in ledger.into_iter() {
-  //   println!(
-  //     "{:?} on the {:?}: {:?}",
-  //     side_vals,
-  //     side,
-  //     tiles
-  //       .iter()
-  //       .map(|(tile_id, _)| *tile_id)
-  //       .collect::<Vec<_>>()
-  //   );
-  // }
+  let image = assemble(tile_ids, &ledger, vec![]).expect("No solution for PART 1");
+  let ans1 = image[0][0].0 * image[0][11].0 * image[11][0].0 * image[11][11].0;
 
-  let image = assemble(remaining_tiles, &ledger, vec![]).expect("No solution for PART 1");
+  println!("PART 1: {}", ans1);
 
-  for row in image.iter() {
-    for tile in row.iter() {
-      print!("{} ", tile.0);
+  let mut cleaned_image = vec![vec![0_u8; 96]; 96];
+
+  for (tile_i, tile_line) in image.iter().enumerate() {
+    for (tile_j, (_, tile)) in tile_line.iter().enumerate() {
+      let tile = clean_tile(tile);
+
+      for i in 0..8 {
+        for j in 0..8 {
+          let global_i = tile_i * 8 + i;
+          let global_j = tile_j * 8 + j;
+
+          cleaned_image[global_i][global_j] = tile[i][j];
+        }
+      }
     }
-    println!();
   }
 
-  image[0][0].0 * image[0][11].0 * image[11][0].0 * image[11][11].0
+  let cleaned_image = flip(&cleaned_image);
+
+  println!("PART 2: {}", count_rough(&cleaned_image));
 }
 
 fn assemble(remaining_tiles: HashSet<usize>, ledger: &Ledger, image: Image) -> Option<Image> {
@@ -83,6 +64,11 @@ fn assemble(remaining_tiles: HashSet<usize>, ledger: &Ledger, image: Image) -> O
       .cloned(),
   );
   let mut next_i = 0;
+
+  // Hack to speed up runs after part 1 is done. This if was not here when I was calculating it
+  if image.is_empty() {
+    fitting.retain(|(tile_id, _)| *tile_id == 2221);
+  }
 
   if !image.is_empty() {
     // Figure out which the last tile was
@@ -109,15 +95,7 @@ fn assemble(remaining_tiles: HashSet<usize>, ledger: &Ledger, image: Image) -> O
     }
   };
 
-  let n_fitting = fitting.len();
-  let mut i = 0;
-
   for (next_id, next_tile) in fitting.into_iter() {
-    if image.is_empty() {
-      i += 1;
-      println!("{}/{}", i, n_fitting);
-    }
-
     let mut remaining_tiles = remaining_tiles.clone();
     remaining_tiles.remove(&next_id);
 
@@ -244,6 +222,58 @@ fn attach(
   }
 }
 
+fn is_monster(image: &Tile, image_i: usize, image_j: usize) -> bool {
+  let pattern: Vec<Vec<usize>> = vec![
+    vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+    vec![1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+    vec![0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+  ];
+
+  if image_i + pattern.len() > image.len() || image_j + pattern[0].len() > image[0].len() {
+    return false;
+  }
+
+  for i in 0..pattern.len() {
+    for j in 0..pattern[i].len() {
+      if pattern[i][j] == 1 && image[image_i + i][image_j + j] == 0 {
+        return false;
+      }
+    }
+  }
+
+  true
+}
+
+fn clean_tile(tile: &Tile) -> Tile {
+  let mut ret = tile.clone();
+
+  ret.remove(tile.len() - 1);
+  ret.remove(0);
+
+  for line in ret.iter_mut() {
+    line.remove(line.len() - 1);
+    line.remove(0);
+  }
+
+  ret
+}
+
+fn count_rough(image: &Vec<Vec<u8>>) -> usize {
+  let mut rough = 0;
+  let mut monsters = 0;
+
+  for i in 0..image.len() {
+    for j in 0..image[i].len() {
+      rough += image[i][j] as usize;
+      if is_monster(&image, i, j) {
+        monsters += 1;
+      }
+    }
+  }
+
+  rough - monsters * 15
+}
+
 #[test]
 fn test_rotate() {
   let tile = vec![vec![0, 1], vec![2, 3]];
@@ -288,4 +318,137 @@ fn test_build_ledger() {
   let ledger = build_ledger(tiles);
 
   assert_eq!(ledger.len(), 32);
+}
+
+#[test]
+fn test_clean_tile() {
+  let tile = vec![vec![0, 1, 2], vec![3, 4, 5], vec![6, 7, 8]];
+
+  assert_eq!(clean_tile(&tile), vec![vec![4]]);
+}
+
+#[test]
+fn test_is_monster() {
+  let pattern = vec![
+    vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+    vec![0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+    vec![0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+  ];
+  assert_eq!(is_monster(&pattern, 0, 0), false);
+
+  let pattern = vec![
+    vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+    vec![1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+    vec![0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+  ];
+  assert_eq!(is_monster(&pattern, 0, 0), true);
+
+  let pattern = vec![
+    vec![0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0],
+    vec![1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1],
+    vec![0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0],
+  ];
+
+  assert_eq!(is_monster(&pattern, 0, 0), true);
+}
+
+#[test]
+fn test_count_rough() {
+  let image = vec![
+    vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+    vec![0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+    vec![0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+  ];
+  assert_eq!(count_rough(&image), 14);
+
+  let image = vec![
+    vec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+    vec![1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+    vec![0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+  ];
+  assert_eq!(count_rough(&image), 0);
+
+  let image = vec![
+    vec![0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0],
+    vec![1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1],
+    vec![0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0],
+  ];
+  assert_eq!(count_rough(&image), 13);
+
+  let image = vec![
+    vec![
+      0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0,
+    ],
+    vec![
+      1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0,
+    ],
+    vec![
+      0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0,
+    ],
+    vec![
+      1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1,
+    ],
+    vec![
+      0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1,
+    ],
+    vec![
+      0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1,
+    ],
+    vec![
+      1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0,
+    ],
+    vec![
+      0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0,
+    ],
+    vec![
+      1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0,
+    ],
+    vec![
+      1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1,
+    ],
+    vec![
+      0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1,
+    ],
+    vec![
+      0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0,
+    ],
+    vec![
+      0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0,
+    ],
+    vec![
+      1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0,
+    ],
+    vec![
+      0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1,
+    ],
+    vec![
+      1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0,
+    ],
+    vec![
+      1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0,
+    ],
+    vec![
+      0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0,
+    ],
+    vec![
+      0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1,
+    ],
+    vec![
+      1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0,
+    ],
+    vec![
+      1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0,
+    ],
+    vec![
+      1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1,
+    ],
+    vec![
+      1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1,
+    ],
+    vec![
+      1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1,
+    ],
+  ];
+
+  assert_eq!(count_rough(&image), 273);
 }
