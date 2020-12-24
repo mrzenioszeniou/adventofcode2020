@@ -419,3 +419,36 @@ pub fn parse_day20(filepath: &str) -> HashMap<usize, Vec<Vec<u8>>> {
 
   ret
 }
+
+pub fn parse_day21(filepath: &str) -> HashMap<Vec<String>, Vec<String>> {
+  let mut ret = HashMap::new();
+
+  let re = Regex::from_str("([a-z ]+) \\(contains ([a-z ,]+)\\)").expect("Couldn't parse regex");
+
+  for line in read_lines(filepath).iter() {
+    let recipe = re
+      .captures(line)
+      .unwrap()
+      .get(1)
+      .unwrap()
+      .as_str()
+      .split(" ")
+      .map(str::trim)
+      .map(String::from)
+      .collect();
+    let allergens = re
+      .captures(line)
+      .unwrap()
+      .get(2)
+      .unwrap()
+      .as_str()
+      .split(",")
+      .map(str::trim)
+      .map(String::from)
+      .collect();
+
+    ret.insert(recipe, allergens);
+  }
+
+  ret
+}

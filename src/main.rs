@@ -21,6 +21,7 @@ mod day6;
 mod day7;
 mod day8;
 mod day9;
+mod day21;
 mod parse;
 
 use std::env;
@@ -72,6 +73,7 @@ fn main() {
     18 => day18::solve(),
     19 => day19::solve(),
     20 => day20::solve(),
+    21 => day21::solve(),
     _ => println!("No solution available for day {}", day),
   }
 }

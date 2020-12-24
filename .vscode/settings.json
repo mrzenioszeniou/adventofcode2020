@@ -1,5 +1,12 @@
 {
+    "editor.renderWhitespace": "all",
+    "editor.renderControlCharacters": true,
+    "breadcrumbs.enabled": true,
+    "editor.rulers": [
+        80,
+        100
+    ],
     "[rust]": {
         "editor.formatOnSave": true,
-        },
+    },
 }
