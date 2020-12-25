@@ -452,3 +452,30 @@ pub fn parse_day21(filepath: &str) -> HashMap<Vec<String>, Vec<String>> {
 
   ret
 }
+
+pub fn parse_day22(filepath: &str) -> (Vec<usize>, Vec<usize>) {
+  let mut player_1 = vec![];
+  let mut player_2 = vec![];
+
+  let mut player: usize = 0;
+
+  for line in read_lines(filepath).into_iter() {
+    if line == "Player 1:" {
+      player = 1;
+    } else if line == "Player 2:" {
+      player = 2;
+    } else if !line.is_empty() {
+      match player {
+        1 => {
+          player_1.push(line.parse().expect("Couldn't parse card"));
+        }
+        2 => {
+          player_2.push(line.parse().expect("Couldn't parse card"));
+        }
+        _ => panic!("Found a card, but the player is set to {}", player),
+      }
+    }
+  }
+
+  (player_1, player_2)
+}
