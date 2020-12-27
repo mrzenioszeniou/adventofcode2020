@@ -30,6 +30,7 @@ fn part_2(mut cups: Vec<usize>) -> usize {
   cups[(start + 1) % cups.len()] * cups[(start + 2) % cups.len()]
 }
 
+/// Performs a number of game rounds on the provided arrangement of cups
 fn rounds(cups: &mut Vec<usize>, lim: usize, rounds: usize) {
   let m = cups.iter().max().unwrap().clone();
 
@@ -50,6 +51,7 @@ fn rounds(cups: &mut Vec<usize>, lim: usize, rounds: usize) {
   bar.finish();
 }
 
+/// Performs one game round on the provided arrangement of cups
 fn round(cups: &mut Vec<usize>, current_idx: usize, max: usize) -> usize {
   let current = cups[current_idx].clone();
   let mut pickups = vec![];
