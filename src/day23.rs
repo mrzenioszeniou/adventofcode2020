@@ -35,6 +35,7 @@ fn rounds(cups: &mut Vec<usize>, lim: usize, rounds: usize) {
   let m = cups.iter().max().unwrap().clone();
 
   cups.append(&mut (m + 1..=lim).collect());
+  assert_eq!(lim, cups.len());
 
   let mut current_idx = 0;
   let bar = ProgressBar::new(rounds as u64);
@@ -55,11 +56,13 @@ fn rounds(cups: &mut Vec<usize>, lim: usize, rounds: usize) {
 fn round(cups: &mut Vec<usize>, current_idx: usize, max: usize) -> usize {
   let current = cups[current_idx].clone();
   let mut pickups = vec![];
+  let mut curr_shift = 0;
   for _ in 0..3 {
     if current_idx + 1 < cups.len() {
       pickups.push(cups.remove(current_idx + 1));
     } else {
       pickups.push(cups.remove(0));
+      curr_shift += 1;
     }
   }
 
@@ -92,7 +95,7 @@ fn round(cups: &mut Vec<usize>, current_idx: usize, max: usize) -> usize {
   if destination_idx > current_idx {
     current_idx + 1
   } else {
-    (cups.iter().position(|&e| e == current).unwrap() + 1) % cups.len()
+    (current_idx + 4 - curr_shift) % max
   }
 }
 
