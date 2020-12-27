@@ -6,11 +6,9 @@ pub fn solve() {
   println!("PART 2: {}", part_2(vec![3, 6, 8, 1, 9, 5, 7, 4, 2]));
 }
 
+/// Solves Part 1
 fn part_1(mut cups: Vec<usize>) -> String {
-  let mut current_idx = 0;
-  for _ in 0..100 {
-    current_idx = round(&mut cups, current_idx, 9);
-  }
+  rounds(&mut cups, 9, 100);
 
   let start = cups.iter().position(|&e| e == 1).unwrap();
 
@@ -23,27 +21,33 @@ fn part_1(mut cups: Vec<usize>) -> String {
   ans
 }
 
-fn part_2(cups: Vec<usize>) -> usize {
+/// Solves Part 2
+fn part_2(mut cups: Vec<usize>) -> usize {
+  rounds(&mut cups, 1_000_000, 10_000_000);
+
+  let start = cups.iter().position(|&e| e == 1).unwrap();
+
+  cups[(start + 1) % cups.len()] * cups[(start + 2) % cups.len()]
+}
+
+fn rounds(cups: &mut Vec<usize>, lim: usize, rounds: usize) {
   let m = cups.iter().max().unwrap().clone();
-  let mut cups: Vec<usize> = cups.into_iter().chain(m + 1..=1_000_000).collect();
+
+  cups.append(&mut (m + 1..=lim).collect());
 
   let mut current_idx = 0;
-  let bar = ProgressBar::new(10_000_000);
+  let bar = ProgressBar::new(rounds as u64);
   bar.set_style(
     ProgressStyle::default_bar()
       .template("[{percent:>3}%] {bar:40.cyan/blue} {eta} remaining")
       .progress_chars("##-"),
   );
-  for _ in 0..10_000_000 {
-    current_idx = round(&mut cups, current_idx, 9);
+  for _ in 0..rounds {
+    current_idx = round(cups, current_idx, lim);
     bar.inc(1);
   }
 
   bar.finish();
-
-  let start = cups.iter().position(|&e| e == 1).unwrap();
-
-  cups[(start + 1) % cups.len()] * cups[(start + 2) % cups.len()]
 }
 
 fn round(cups: &mut Vec<usize>, current_idx: usize, max: usize) -> usize {
