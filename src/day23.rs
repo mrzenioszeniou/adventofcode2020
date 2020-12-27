@@ -45,7 +45,9 @@ fn rounds(cups: &mut Vec<usize>, lim: usize, rounds: usize) {
   let bar = ProgressBar::new(rounds as u64);
   bar.set_style(
     ProgressStyle::default_bar()
-      .template("[{percent:>3}%] {bar:40.cyan/blue} {eta} remaining")
+      .template(
+        "[{percent:>3}%] {bar:40.cyan/blue} {elapsed} elapsed | ETA:{eta_precise} remaining",
+      )
       .progress_chars("##-"),
   );
   for _ in 0..rounds {
