@@ -27,6 +27,10 @@ fn part_2(mut cups: Vec<usize>) -> usize {
 
   let start = cups.iter().position(|&e| e == 1).unwrap();
 
+  for cup in cups.iter() {
+    println!("{}", cup);
+  }
+
   cups[(start + 1) % cups.len()] * cups[(start + 2) % cups.len()]
 }
 
