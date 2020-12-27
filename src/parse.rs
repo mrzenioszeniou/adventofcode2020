@@ -479,3 +479,49 @@ pub fn parse_day22(filepath: &str) -> (Vec<usize>, Vec<usize>) {
 
   (player_1, player_2)
 }
+
+pub fn parse_day24(filepath: &str) -> Vec<(isize, isize, isize)> {
+  let mut ret = vec![];
+
+  for mut line in read_lines(filepath).into_iter() {
+    // e, se, sw, w, nw, and ne
+
+    let mut coordinates = (0, 0, 0);
+    while !line.is_empty() {
+      if line.starts_with("e") {
+        coordinates.0 += 1;
+        coordinates.1 -= 1;
+        line.remove(0);
+      } else if line.starts_with("se") {
+        coordinates.1 -= 1;
+        coordinates.2 += 1;
+        line.remove(0);
+        line.remove(0);
+      } else if line.starts_with("sw") {
+        coordinates.0 -= 1;
+        coordinates.2 += 1;
+        line.remove(0);
+        line.remove(0);
+      } else if line.starts_with("w") {
+        coordinates.0 -= 1;
+        coordinates.1 += 1;
+        line.remove(0);
+      } else if line.starts_with("nw") {
+        coordinates.1 += 1;
+        coordinates.2 -= 1;
+        line.remove(0);
+        line.remove(0);
+      } else if line.starts_with("ne") {
+        coordinates.0 += 1;
+        coordinates.2 -= 1;
+        line.remove(0);
+        line.remove(0);
+      } else {
+        panic!("Dafuq is this? {}", line);
+      }
+    }
+    ret.push(coordinates);
+  }
+
+  ret
+}
