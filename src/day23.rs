@@ -45,7 +45,7 @@ fn rounds(cups: &mut Vec<usize>, lim: usize, rounds: usize) {
       .progress_chars("##-"),
   );
   for _ in 0..rounds {
-    current_idx = round(cups, current_idx, lim);
+    current_idx = round(cups, current_idx);
     bar.inc(1);
   }
 
@@ -53,7 +53,16 @@ fn rounds(cups: &mut Vec<usize>, lim: usize, rounds: usize) {
 }
 
 /// Performs one game round on the provided arrangement of cups
-fn round(cups: &mut Vec<usize>, current_idx: usize, max: usize) -> usize {
+fn round(cups: &mut Vec<usize>, current_idx: usize) -> usize {
+  // print!("Cups: ");
+  // for (i, cup) in cups.iter().enumerate() {
+  //   if i == current_idx {
+  //     print!("({}) ", cup);
+  //   } else {
+  //     print!(" {}  ", cup);
+  //   }
+  // }
+  let max = cups.len();
   let current = cups[current_idx].clone();
   let mut pickups = vec![];
   let mut curr_shift = 0;
@@ -65,15 +74,6 @@ fn round(cups: &mut Vec<usize>, current_idx: usize, max: usize) -> usize {
       curr_shift += 1;
     }
   }
-
-  // print!("Cups: ");
-  // for (i, cup) in cups.iter().enumerate() {
-  //   if i == current_idx {
-  //     print!("({}) ", cup);
-  //   } else {
-  //     print!(" {}  ", cup);
-  //   }
-  // }
   // println!("Pickups: {:?}", pickups);
 
   let mut destination = current - 1;
